@@ -2,22 +2,47 @@
   "lcd": {
     "P_7": "京东方 (BOE) Q9+",
     "P_3": "天马 (Tianma) T7+",
-    "AA607": "三星 (Samsung) E6",
+    "P_1": "三星 (Samsung)",
+    "AA607": "京东方 (BOE) 蓝钻",
     "SDC": "三星 (Samsung)",
-    "BOE": "京东方 (BOE)"
+    "BOE": "京东方 (BOE)",
+    "TM": "天马 (Tianma)",
+    "CSOT": "华星光电 (TCL)"
   },
   "ddr": {
-    "HN8T271EJKX152": "海力士 (SK Hynix) LPDDR5X",
-    "K3KL9L90CM": "三星 (Samsung) LPDDR5X",
+    "D1a": "海力士 (SK Hynix) 1α nm LPDDR5",
+    "D1b": "海力士 (SK Hynix) 1β nm LPDDR5X",
+    "K3KL": "三星 (Samsung) LPDDR5X",
+    "K3LK": "三星 (Samsung) LPDDR5",
     "MT62F": "美光 (Micron) LPDDR5X",
+    "MT53E": "美光 (Micron) LPDDR4X",
+    "H9J": "海力士 (SK Hynix) LPDDR5",
     "SKHynix": "海力士 (SK Hynix)",
+    "SKhynix": "海力士 (SK Hynix)",
+    "Hynix": "海力士 (SK Hynix)",
     "Samsung": "三星 (Samsung)",
-    "Hynix": "海力士 (SK Hynix)"
+    "SAMSUNG": "三星 (Samsung)",
+    "Micron": "美光 (Micron)",
+    "MICRON": "美光 (Micron)"
   },
   "ufs": {
-    "KLUFG8RHFD": "三星 (Samsung) UFS 4.0",
-    "HN8T27": "海力士 (SK Hynix) UFS 4.0",
+    "HN8T": "海力士 (SK Hynix) UFS 3.1/4.0",
+    "HN29": "海力士 (SK Hynix) UFS 2.2/3.1",
+    "HN8T271EJKX152": "海力士 (SK Hynix) 512GB UFS 3.1",
+    "KLUFG": "三星 (Samsung) UFS 4.0",
+    "KLUEG": "三星 (Samsung) UFS 3.1",
+    "KM": "三星 (Samsung) UFS / eMMC",
     "THGJF": "铠侠 (Kioxia) UFS 4.0",
-    "Micron": "美光 (Micron)"
+    "THGAF": "铠侠 (Kioxia) UFS 3.1",
+    "MT29": "美光 (Micron) UFS",
+    "Micron": "美光 (Micron)",
+    "MICRON": "美光 (Micron)",
+    "SKHynix": "海力士 (SK Hynix)",
+    "SKhynix": "海力士 (SK Hynix)",
+    "Hynix": "海力士 (SK Hynix)",
+    "Samsung": "三星 (Samsung)",
+    "SAMSUNG": "三星 (Samsung)",
+    "Kioxia": "铠侠 (Kioxia)",
+    "YMTC": "长江存储 (YMTC)"
   }
 }
