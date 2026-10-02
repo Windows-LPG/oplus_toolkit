@@ -1,0 +1,23 @@
+{
+  "lcd": {
+    "P_7": "京东方 (BOE) Q9+",
+    "P_3": "天马 (Tianma) T7+",
+    "AA607": "三星 (Samsung) E6",
+    "SDC": "三星 (Samsung)",
+    "BOE": "京东方 (BOE)"
+  },
+  "ddr": {
+    "HN8T271EJKX152": "海力士 (SK Hynix) LPDDR5X",
+    "K3KL9L90CM": "三星 (Samsung) LPDDR5X",
+    "MT62F": "美光 (Micron) LPDDR5X",
+    "SKHynix": "海力士 (SK Hynix)",
+    "Samsung": "三星 (Samsung)",
+    "Hynix": "海力士 (SK Hynix)"
+  },
+  "ufs": {
+    "KLUFG8RHFD": "三星 (Samsung) UFS 4.0",
+    "HN8T27": "海力士 (SK Hynix) UFS 4.0",
+    "THGJF": "铠侠 (Kioxia) UFS 4.0",
+    "Micron": "美光 (Micron)"
+  }
+}
