@@ -1,19 +1,18 @@
 {
   "lcd": {
+    "AA607": "天马 (Tianma)",
+    "AA590": "京东方 (BOE)",
+    "AA599": "天马 (Tianma)",
+    "aa599": "天马 (Tianma)",
     "tianma": "天马 (Tianma)",
+    "TIANMA": "天马 (Tianma)",
     "boe": "京东方 (BOE)",
-    "samsung": "三星 (Samsung)",
-    "sdc": "三星 (Samsung)",
-    "visionox": "维信诺 (Visionox)",
-    "csot": "华星光电 (TCL)",
-    "P_7": "京东方 (BOE)",
-    "P_3": "天马 (Tianma)",
-    "P_1": "三星 (Samsung)",
-    "AA607": "京东方 (BOE)",
-    "SDC": "三星 (Samsung)",
     "BOE": "京东方 (BOE)",
-    "TM": "天马 (Tianma)",
-    "CSOT": "华星光电 (TCL)"
+    "samsung": "三星 (Samsung)",
+    "SDC": "三星 (Samsung)",
+    "visionox": "维信诺 (Visionox)",
+    "csot": "华星光电 (CSOT)",
+    "CSOT": "华星光电 (CSOT)"
   },
   "ddr": {
     "Samsung": "三星 (Samsung) LPDDR5X",
