@@ -13,8 +13,8 @@ import java.net.URL
 class RuleRepository(private val context: Context) {
 
     companion object {
-        // 内置 GitHub 远程规则 JSON 链接（可以在此处填入你的 GitHub 仓库 Raw JSON 链接）
-        const val DEFAULT_ONLINE_RULES_URL = "test_URL"
+        // 默认 GitHub 规则链接
+        const val DEFAULT_ONLINE_RULES_URL = "https://github.com/Windows-LPG/oplus_toolkit/blob/master/rule.json"
     }
 
     private val gson = Gson()
@@ -62,7 +62,15 @@ class RuleRepository(private val context: Context) {
 
     suspend fun downloadRulesFromUrl(urlStr: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val url = URL(urlStr)
+            var actualUrl = urlStr.trim()
+            // 自动将 GitHub blob 链接转换为 raw.githubusercontent.com 原始文件链接
+            if (actualUrl.contains("github.com") && actualUrl.contains("/blob/")) {
+                actualUrl = actualUrl
+                    .replace("github.com", "raw.githubusercontent.com")
+                    .replace("/blob/", "/")
+            }
+
+            val url = URL(actualUrl)
             val connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 10000
             connection.readTimeout = 10000

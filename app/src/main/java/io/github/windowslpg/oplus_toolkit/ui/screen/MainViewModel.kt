@@ -10,6 +10,7 @@ import io.github.windowslpg.oplus_toolkit.data.repository.HardwareParserEngine
 import io.github.windowslpg.oplus_toolkit.data.repository.RuleRepository
 import io.github.windowslpg.oplus_toolkit.data.root.DevInfoReader
 import io.github.windowslpg.oplus_toolkit.data.root.RootShellExecutor
+import io.github.windowslpg.oplus_toolkit.data.root.ScreenDetectionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,14 +50,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val rules = repository.loadRules()
 
             val items = HardwareCategory.entries.map { category ->
-                val rawCode = DevInfoReader.readRawNode(category)
-                val vendorName = HardwareParserEngine.parse(category, rawCode, rules)
-                HardwareItem(
-                    category = category,
-                    rawCode = rawCode,
-                    vendorName = vendorName,
-                    readSuccess = !rawCode.startsWith("无法获取")
-                )
+                if (category == HardwareCategory.SCREEN) {
+                    val screenResult = ScreenDetectionManager.detectScreen(getApplication(), rules)
+                    HardwareItem(
+                        category = category,
+                        rawCode = screenResult.rawCode,
+                        vendorName = screenResult.parsedVendor,
+                        readSuccess = !screenResult.rawCode.startsWith("未能读取"),
+                        detectionSource = screenResult.nodePath
+                    )
+                } else {
+                    val rawCode = DevInfoReader.readRawNode(category)
+                    val vendorName = HardwareParserEngine.parse(category, rawCode, rules)
+                    HardwareItem(
+                        category = category,
+                        rawCode = rawCode,
+                        vendorName = vendorName,
+                        readSuccess = !rawCode.startsWith("无法获取"),
+                        detectionSource = category.nodePath
+                    )
+                }
             }
 
             _uiState.update {

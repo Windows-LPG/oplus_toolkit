@@ -34,6 +34,10 @@ object HardwareParserEngine {
         return "未知厂商代号 ($rawCode)"
     }
 
+    fun parseScreen(rawCode: String, dictionary: RuleDictionary): String {
+        return parse(HardwareCategory.SCREEN, rawCode, dictionary)
+    }
+
     private fun String.equalsIgnoreCase(other: String): Boolean =
         this.equals(other, ignoreCase = true)
 }

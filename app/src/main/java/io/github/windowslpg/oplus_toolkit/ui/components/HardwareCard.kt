@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,11 +25,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.windowslpg.oplus_toolkit.data.model.HardwareCategory
@@ -91,51 +97,75 @@ fun HardwareCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Raw Code & Node Details
+            // Raw Code & Node Details (Collapsible for long logs)
+            var isLogExpanded by remember { mutableStateOf(false) }
+            val lineCount = item.rawCode.lines().size
+            val isLongLog = lineCount > 3 || item.rawCode.length > 120
+
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "底层节点: ${item.category.nodePath}",
+                            text = "底层节点: ${item.detectionSource ?: item.category.nodePath}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "原始代号: ${item.rawCode}",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 13.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isLongLog) {
+                                Text(
+                                    text = if (isLogExpanded) "收起日志 ▲" else "展开日志 (${lineCount}行) ▼",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clickable { isLogExpanded = !isLogExpanded }
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("Hardware Raw Code", item.rawCode)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "已复制原始代号", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "复制原始代号",
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
                     }
 
-                    IconButton(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("Hardware Raw Code", item.rawCode)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "已复制原始代号", Toast.LENGTH_SHORT).show()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "复制原始代号",
-                            tint = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                        text = "原始代号:\n${item.rawCode}",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 13.sp
+                        ),
+                        maxLines = if (isLogExpanded || !isLongLog) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }

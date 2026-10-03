@@ -123,7 +123,7 @@ fun OnlineUpdateScreen(
                             onValueChange = { urlText = it },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("规则 JSON 链接") },
-                            placeholder = { Text("https://raw.githubusercontent.com/...") },
+                            placeholder = { Text("https://github.com/Windows-LPG/oplus_toolkit/blob/master/rule.json") },
                             singleLine = true,
                             trailingIcon = {
                                 if (urlText.isNotEmpty()) {

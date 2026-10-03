@@ -1,7 +1,11 @@
 package io.github.windowslpg.oplus_toolkit.data.model
 
+import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
+
+@Keep
 data class RuleDictionary(
-    val lcd: Map<String, String> = emptyMap(),
-    val ddr: Map<String, String> = emptyMap(),
-    val ufs: Map<String, String> = emptyMap()
+    @SerializedName("lcd") val lcd: Map<String, String> = emptyMap(),
+    @SerializedName("ddr") val ddr: Map<String, String> = emptyMap(),
+    @SerializedName("ufs") val ufs: Map<String, String> = emptyMap()
 )
