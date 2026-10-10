@@ -60,6 +60,7 @@ fun OnlineUpdateScreen(
     var isDownloading by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -78,7 +79,7 @@ fun OnlineUpdateScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -97,7 +98,7 @@ fun OnlineUpdateScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
                     Column(
@@ -117,7 +118,6 @@ fun OnlineUpdateScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // 输入框：内置链接可在此处填写/修改
                         OutlinedTextField(
                             value = urlText,
                             onValueChange = { urlText = it },
@@ -136,7 +136,6 @@ fun OnlineUpdateScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // 下方的勾选按钮
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -154,7 +153,6 @@ fun OnlineUpdateScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 下载更新按钮
                         Button(
                             onClick = {
                                 if (urlText.isBlank()) {

@@ -15,12 +15,38 @@ class RuleRepository(private val context: Context) {
     companion object {
         // 默认 GitHub 规则链接
         const val DEFAULT_ONLINE_RULES_URL = "https://github.com/Windows-LPG/oplus_toolkit/blob/master/rule.json"
+        private const val PREFS_NAME = "oplus_toolkit_prefs"
+        private const val KEY_SAVED_VERSION_CODE = "saved_version_code"
+        private const val KEY_IS_MANUALLY_IMPORTED = "is_manually_imported"
     }
 
     private val gson = Gson()
     private val customRulesFile = File(context.filesDir, "custom_rules.json")
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    suspend fun checkAndUpdateCache() = withContext(Dispatchers.IO) {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val currentVersion = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageInfo)
+            val savedVersion = prefs.getLong(KEY_SAVED_VERSION_CODE, 0L)
+            
+            if (currentVersion > savedVersion) {
+                // 如果是 App 升级且没有被用户手动导入本地文件锁定
+                if (!prefs.getBoolean(KEY_IS_MANUALLY_IMPORTED, false)) {
+                    if (customRulesFile.exists()) {
+                        customRulesFile.delete()
+                    }
+                }
+                prefs.edit().putLong(KEY_SAVED_VERSION_CODE, currentVersion).apply()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     suspend fun loadRules(): RuleDictionary = withContext(Dispatchers.IO) {
+        checkAndUpdateCache()
+
         try {
             if (customRulesFile.exists()) {
                 val json = customRulesFile.readText()
@@ -54,6 +80,7 @@ class RuleRepository(private val context: Context) {
 
             // 持有写入本地 custom_rules.json
             customRulesFile.writeText(jsonString)
+            prefs.edit().putBoolean(KEY_IS_MANUALLY_IMPORTED, true).apply()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
@@ -91,6 +118,7 @@ class RuleRepository(private val context: Context) {
 
             // 写入本地自定义规则
             customRulesFile.writeText(jsonString)
+            prefs.edit().putBoolean(KEY_IS_MANUALLY_IMPORTED, false).apply()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
@@ -102,6 +130,7 @@ class RuleRepository(private val context: Context) {
     }
 
     suspend fun resetToDefaultRules(): Boolean = withContext(Dispatchers.IO) {
+        prefs.edit().putBoolean(KEY_IS_MANUALLY_IMPORTED, false).apply()
         if (customRulesFile.exists()) {
             customRulesFile.delete()
         } else {

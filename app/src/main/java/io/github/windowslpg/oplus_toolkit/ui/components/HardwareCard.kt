@@ -3,6 +3,8 @@ package io.github.windowslpg.oplus_toolkit.ui.components
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeveloperBoard
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,10 +59,10 @@ fun HardwareCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            .padding(vertical = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -104,7 +107,7 @@ fun HardwareCard(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -133,10 +136,31 @@ fun HardwareCard(
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .clickable { isLogExpanded = !isLogExpanded }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .padding(horizontal = 6.dp, vertical = 4.dp)
                                 )
                             }
 
+                            // 一键 Bing 搜索按钮 (智能清洗关键词)
+                            IconButton(
+                                onClick = {
+                                    val query = extractSearchQuery(item)
+                                    val searchUrl = "https://www.bing.com/search?q=" + Uri.encode(query)
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(searchUrl))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "无法打开浏览器: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "一键 Bing 搜索",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            // 复制原始代号按钮
                             IconButton(
                                 onClick = {
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -167,6 +191,52 @@ fun HardwareCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+            }
+        }
+    }
+}
+
+// 智能清洗搜索关键词，屏幕和 DDR 提取关键型号代号，UFS 保留完整器件型号
+private fun extractSearchQuery(item: HardwareItem): String {
+    val raw = item.rawCode.trim()
+    return when (item.category) {
+        HardwareCategory.SCREEN -> {
+            // 正则优先提取核心屏幕面板代码段（如 AA590_P_3_A0020, AA607, AA599 等）
+            val regex = Regex("""(?:mdss_dsi_panel_|panel_)([A-Za-z0-9_]+)""", RegexOption.IGNORE_CASE)
+            val match = regex.find(raw)
+            if (match != null) {
+                match.groupValues[1]
+            } else {
+                // 如果是从其他节点读取，过滤并提取包含核心代码的那一行
+                raw.lines()
+                    .firstOrNull { it.contains("version", ignoreCase = true) || it.contains("manufacture", ignoreCase = true) || it.contains("panel", ignoreCase = true) }
+                    ?.replace("Device version:", "")
+                    ?.replace("Device manufacture:", "")
+                    ?.replace("|", " ")
+                    ?.trim() ?: raw.take(60)
+            }
+        }
+        HardwareCategory.RAM -> {
+            // DDR 内存：从 Device manufacture: Hynix|D1a|16G 中清洗出 "Hynix D1a 16G" 核心代号
+            if (raw.contains("Device manufacture:", ignoreCase = true)) {
+                val manufactureLine = raw.lines().firstOrNull { it.contains("manufacture", ignoreCase = true) } ?: ""
+                val code = manufactureLine.substringAfter("Device manufacture:").trim()
+                code.replace("|", " ")
+            } else if (raw.contains("Device version:", ignoreCase = true)) {
+                val versionLine = raw.lines().firstOrNull { it.contains("version", ignoreCase = true) } ?: ""
+                versionLine.substringAfter("Device version:").trim()
+            } else {
+                raw.replace("|", " ").take(60)
+            }
+        }
+        HardwareCategory.ROM -> {
+            // UFS 闪存：完美提取器件完整型号代码（如 KLUEG4RHHF-FOG1 或 HN8T274EJKX130）
+            if (raw.contains("Device version:", ignoreCase = true)) {
+                val versionLine = raw.lines().firstOrNull { it.contains("version", ignoreCase = true) } ?: ""
+                val code = versionLine.substringAfter("Device version:").trim()
+                if (code.isNotBlank()) code else raw
+            } else {
+                raw
             }
         }
     }

@@ -10,14 +10,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.windowslpg.oplus_toolkit.ui.screen.MainScreen
+import io.github.windowslpg.oplus_toolkit.ui.screen.AboutScreen
+import io.github.windowslpg.oplus_toolkit.ui.screen.MainScaffold
 import io.github.windowslpg.oplus_toolkit.ui.screen.MainViewModel
+import io.github.windowslpg.oplus_toolkit.ui.screen.NonRootDetectionScreen
 import io.github.windowslpg.oplus_toolkit.ui.screen.OnlineUpdateScreen
+import io.github.windowslpg.oplus_toolkit.ui.screen.RootDetectionScreen
 import io.github.windowslpg.oplus_toolkit.ui.theme.OplusToolkitTheme
 
-enum class Screen {
-    MAIN,
-    ONLINE_UPDATE
+enum class AppScreen {
+    SCAFFOLD,
+    ROOT_DETECTION,
+    NON_ROOT_DETECTION,
+    ONLINE_UPDATE,
+    ABOUT
 }
 
 class MainActivity : ComponentActivity() {
@@ -36,23 +42,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainAppNav() {
-    var currentScreen by remember { mutableStateOf(Screen.MAIN) }
+    var currentScreen by remember { mutableStateOf(AppScreen.SCAFFOLD) }
     val mainViewModel: MainViewModel = viewModel()
 
     when (currentScreen) {
-        Screen.MAIN -> {
-            MainScreen(
+        AppScreen.SCAFFOLD -> {
+            MainScaffold(
                 viewModel = mainViewModel,
-                onNavigateToOnlineUpdate = { currentScreen = Screen.ONLINE_UPDATE }
+                onNavigateToRoot = { currentScreen = AppScreen.ROOT_DETECTION },
+                onNavigateToNonRoot = { currentScreen = AppScreen.NON_ROOT_DETECTION },
+                onNavigateToOnlineUpdate = { currentScreen = AppScreen.ONLINE_UPDATE },
+                onNavigateToAbout = { currentScreen = AppScreen.ABOUT }
             )
         }
-        Screen.ONLINE_UPDATE -> {
+        AppScreen.ROOT_DETECTION -> {
+            RootDetectionScreen(
+                viewModel = mainViewModel,
+                onBack = { currentScreen = AppScreen.SCAFFOLD }
+            )
+        }
+        AppScreen.NON_ROOT_DETECTION -> {
+            NonRootDetectionScreen(
+                onBack = { currentScreen = AppScreen.SCAFFOLD }
+            )
+        }
+        AppScreen.ONLINE_UPDATE -> {
             OnlineUpdateScreen(
-                onBack = { currentScreen = Screen.MAIN },
+                onBack = { currentScreen = AppScreen.SCAFFOLD },
                 onRulesUpdated = {
                     mainViewModel.refreshAll()
-                    currentScreen = Screen.MAIN
+                    currentScreen = AppScreen.SCAFFOLD
                 }
+            )
+        }
+        AppScreen.ABOUT -> {
+            AboutScreen(
+                onBack = { currentScreen = AppScreen.SCAFFOLD }
             )
         }
     }
