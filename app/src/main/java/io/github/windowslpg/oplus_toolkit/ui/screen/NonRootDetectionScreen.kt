@@ -1,5 +1,6 @@
 package io.github.windowslpg.oplus_toolkit.ui.screen
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -206,7 +206,7 @@ fun NonRootDetectionScreen(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "点击后系统将自动跳转至【手机管家】，请在手机管家中点击“常规检测”并勾选“性能”，随后启动检测，工具将自动实时回显闪存及内存数据。",
+                                    text = "点击后系统将自动跳转至【手机管家】，请在手机管家右上角三个点中点击“常规检测”并只勾选“性能”，随后开始检测，工具将自动读取日志并显示闪存 内存数据。",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -230,12 +230,12 @@ fun NonRootDetectionScreen(
                                                 // 1. 设置系统属性
                                                 ShizukuCommandRunner.executeCommand("setprop log.tag.Postman-StorageHealthCheckItem DEBUG")
 
-                                                // 2. 跳转手机管家
+                                                // 2. 调起 ColorOS 16/17 手机管家
                                                 val launched = launchPhoneManager(context)
                                                 if (launched) {
-                                                    Toast.makeText(context, "请在手机管家中开启【性能】常规检测", Toast.LENGTH_LONG).show()
+                                                    Toast.makeText(context, "请在手机管家中勾选【性能】常规检测", Toast.LENGTH_LONG).show()
                                                 } else {
-                                                    snackbarHostState.showSnackbar("未能自动调起手机管家，请手动打开【手机管家】进行常规检测。")
+                                                    snackbarHostState.showSnackbar("未找到或无法调起手机管家 (com.oplus.phonemanagerlite)，请手动打开或前往系统设置 -> 应用管理中恢复或重装系统手机管家！")
                                                 }
 
                                                 // 3. 监听日志
@@ -353,10 +353,13 @@ fun NonRootDetectionScreen(
 }
 
 private fun launchPhoneManager(context: Context): Boolean {
+    // 适配 ColorOS 16~17 精简版手机管家包名 (com.oplus.phonemanagerlite)
     val packageNames = listOf(
+        "com.oplus.phonemanagerlite",
         "com.coloros.phonemanager",
         "com.oplus.phonemanager",
         "com.oneplus.phonemanager",
+        "com.coloros.securityguard",
         "com.oplus.postmanservice"
     )
 
@@ -370,5 +373,28 @@ private fun launchPhoneManager(context: Context): Boolean {
             } catch (_: Exception) {}
         }
     }
+
+    // 显式 ComponentName 机制
+    val components = listOf(
+        ComponentName("com.oplus.phonemanagerlite", "com.oplus.phonemanagerlite.MainPageActivity"),
+        ComponentName("com.oplus.phonemanagerlite", "com.oplus.phonemanagerlite.MainActivity"),
+        ComponentName("com.oplus.phonemanagerlite", "com.oplus.phonemanager.MainPageActivity"),
+        ComponentName("com.coloros.phonemanager", "com.coloros.phonemanager.MainPageActivity"),
+        ComponentName("com.coloros.phonemanager", "com.coloros.phonemanager.DiagnosticActivity"),
+        ComponentName("com.oplus.phonemanager", "com.oplus.phonemanager.MainPageActivity"),
+        ComponentName("com.oplus.postmanservice", "com.oplus.postmanservice.ui.activity.PostmanMainActivity")
+    )
+
+    for (componentName in components) {
+        try {
+            val intent = Intent().apply {
+                component = componentName
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+            return true
+        } catch (_: Exception) {}
+    }
+
     return false
 }

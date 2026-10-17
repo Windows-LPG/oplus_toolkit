@@ -4,7 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -140,22 +141,15 @@ fun HardwareCard(
                                 )
                             }
 
-                            // 一键 Bing 搜索按钮 (智能清洗关键词)
+                            // 一键跳转 AI App 智能搜索按钮
                             IconButton(
                                 onClick = {
-                                    val query = extractSearchQuery(item)
-                                    val searchUrl = "https://www.bing.com/search?q=" + Uri.encode(query)
-                                    try {
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(searchUrl))
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "无法打开浏览器: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    }
+                                    launchAiSearch(context, item)
                                 }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
-                                    contentDescription = "一键 Bing 搜索",
+                                    contentDescription = "一键 AI 搜索",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -196,48 +190,74 @@ fun HardwareCard(
     }
 }
 
-// 智能清洗搜索关键词，屏幕和 DDR 提取关键型号代号，UFS 保留完整器件型号
-private fun extractSearchQuery(item: HardwareItem): String {
-    val raw = item.rawCode.trim()
-    return when (item.category) {
-        HardwareCategory.SCREEN -> {
-            // 正则优先提取核心屏幕面板代码段（如 AA590_P_3_A0020, AA607, AA599 等）
-            val regex = Regex("""(?:mdss_dsi_panel_|panel_)([A-Za-z0-9_]+)""", RegexOption.IGNORE_CASE)
-            val match = regex.find(raw)
-            if (match != null) {
-                match.groupValues[1]
-            } else {
-                // 如果是从其他节点读取，过滤并提取包含核心代码的那一行
-                raw.lines()
-                    .firstOrNull { it.contains("version", ignoreCase = true) || it.contains("manufacture", ignoreCase = true) || it.contains("panel", ignoreCase = true) }
-                    ?.replace("Device version:", "")
-                    ?.replace("Device manufacture:", "")
-                    ?.replace("|", " ")
-                    ?.trim() ?: raw.take(60)
+private data class AiAppCandidate(
+    val name: String,
+    val packages: List<String>
+)
+
+private fun isProxyOrVpnActive(context: Context): Boolean {
+    return try {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+
+        val isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+        val proxyHost = System.getProperty("http.proxyHost")
+        val isProxy = !proxyHost.isNullOrBlank()
+
+        isVpn || isProxy
+    } catch (_: Exception) {
+        false
+    }
+}
+
+private fun launchAiSearch(context: Context, item: HardwareItem) {
+    // 丰富 Prompt，确保 AI 能够完整识别面板参数与节点代码
+    val prompt = "请详细分析并说明该手机${item.category.displayName}的硬件厂商、规格型号代号与性能技术参数。\n底层硬件参数与代码：\n${item.rawCode.trim()}"
+
+    // 1. 将分析 Prompt 自动复制到剪贴板
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("AI Hardware Query", prompt)
+    clipboard.setPrimaryClip(clip)
+
+    val hasProxy = isProxyOrVpnActive(context)
+
+    // AI 应用候选池
+    val chatGpt = AiAppCandidate("ChatGPT", listOf("com.openai.chatgpt"))
+    val gemini = AiAppCandidate("Gemini", listOf("com.google.android.apps.bard", "com.google.android.googlequicksearchbox"))
+    val deepseek = AiAppCandidate("DeepSeek", listOf("com.deepseek.chat"))
+    val qwen = AiAppCandidate("通义千问", listOf("com.aliyun.tongyi", "com.alibaba.tongyi"))
+    val doubao = AiAppCandidate("豆包", listOf("com.larus.nova", "com.volcengine.doubao"))
+
+    // 未识别到代理时，直接舍弃国外 AI (ChatGPT/Gemini)，仅保留国产 AI 候选池
+    val priorityList = if (hasProxy) {
+        listOf(chatGpt, gemini, deepseek, qwen, doubao)
+    } else {
+        listOf(deepseek, qwen, doubao)
+    }
+
+    // 查找并调起已安装的 AI APP
+    var launchedApp: AiAppCandidate? = null
+    for (candidate in priorityList) {
+        for (pkg in candidate.packages) {
+            val intent = context.packageManager.getLaunchIntentForPackage(pkg)
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    context.startActivity(intent)
+                    launchedApp = candidate
+                    break
+                } catch (_: Exception) {}
             }
         }
-        HardwareCategory.RAM -> {
-            // DDR 内存：从 Device manufacture: Hynix|D1a|16G 中清洗出 "Hynix D1a 16G" 核心代号
-            if (raw.contains("Device manufacture:", ignoreCase = true)) {
-                val manufactureLine = raw.lines().firstOrNull { it.contains("manufacture", ignoreCase = true) } ?: ""
-                val code = manufactureLine.substringAfter("Device manufacture:").trim()
-                code.replace("|", " ")
-            } else if (raw.contains("Device version:", ignoreCase = true)) {
-                val versionLine = raw.lines().firstOrNull { it.contains("version", ignoreCase = true) } ?: ""
-                versionLine.substringAfter("Device version:").trim()
-            } else {
-                raw.replace("|", " ").take(60)
-            }
-        }
-        HardwareCategory.ROM -> {
-            // UFS 闪存：完美提取器件完整型号代码（如 KLUEG4RHHF-FOG1 或 HN8T274EJKX130）
-            if (raw.contains("Device version:", ignoreCase = true)) {
-                val versionLine = raw.lines().firstOrNull { it.contains("version", ignoreCase = true) } ?: ""
-                val code = versionLine.substringAfter("Device version:").trim()
-                if (code.isNotBlank()) code else raw
-            } else {
-                raw
-            }
-        }
+        if (launchedApp != null) break
+    }
+
+    if (launchedApp != null) {
+        val proxyStatusText = if (hasProxy) "已开启代理" else "国内网络"
+        Toast.makeText(context, "[$proxyStatusText] 已跳转 ${launchedApp.name}，硬件参数已复制到剪贴板！", Toast.LENGTH_LONG).show()
+    } else {
+        // 无可用 AI App，提示用户，不打开网页
+        Toast.makeText(context, "未检测到兼容的 AI 应用，硬件参数已复制到剪贴板，请安装 AI 软件后使用！", Toast.LENGTH_LONG).show()
     }
 }

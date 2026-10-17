@@ -3,8 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
+    <queries>
+        <package android:name="com.oplus.phonemanagerlite" />
+        <package android:name="com.coloros.phonemanager" />
+        <package android:name="com.oplus.phonemanager" />
+        <package android:name="com.oneplus.phonemanager" />
+        <package android:name="com.oplus.postmanservice" />
+        <package android:name="com.openai.chatgpt" />
+        <package android:name="com.deepseek.chat" />
+        <package android:name="com.aliyun.tongyi" />
+        <package android:name="com.larus.nova" />
+    </queries>
 
     <application
         android:allowBackup="true"
