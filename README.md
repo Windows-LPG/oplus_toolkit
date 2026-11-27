@@ -95,3 +95,7 @@
 
 ## 📄 开源许可
 本项目遵循 GPL v3 开源协议。
+
+## 致谢
+* 电池检测相关实现参考自 [加加电池] https://github.com/dijia1124/plusplusbattery (MIT License)
+* 免root检测闪存内存的思路参考自 [ColorOS 17 Memory Vendor] https://github.com/Wayne-u/coloros17-memory-vendor (MIT License) 实现参考朋友代码
