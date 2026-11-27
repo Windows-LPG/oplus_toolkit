@@ -1,10 +1,10 @@
 <div align="center">
-  <img width="360" height="360" alt="logo" src="https://github.com/user-attachments/assets/d055944a-30cd-48d4-9df0-0a88a7813c47" />
+  <img width="120" height="120" alt="logo" src="https://github.com/user-attachments/assets/d055944a-30cd-48d4-9df0-0a88a7813c47" />
 </div>
 <div align="center">
   
   <h1>OPlus Toolkit</h1>
-  <p>专为 ColorOS 打造的工具箱，秒读屏幕、闪存与内存的真实供应商。</p>
+  <p>专为 ColorOS 打造的轻量级工具箱</p>
 
   <!-- 徽章区域 -->
   <p>
@@ -21,17 +21,19 @@
       <img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="License" />
     </a>
   </p>
-</div>
-</div>通过读取系统底层文件，告别复杂的终端命令与翻文件过程，一键了解手机的屏幕面板厂商、运行内存（RAM）颗粒以及闪存（ROM）物料详情。
 
----
+  <p>告别复杂的终端命令与翻文件，一键了解手机的软硬件信息</p>
+</div>
+
 
 ## ✨ 核心特性
 
-- 📱 **屏幕面板识别**：抓取系统文件，翻译型号为京东方（BOE）、三星（Samsung）、天马（Tianma）等明文厂商。
+- 📱 **屏幕面板识别**：读取系统文件，翻译型号为京东方（BOE）、三星（Samsung）、天马（Tianma）等明文厂商。
 - ⚡ **内存与闪存透视**：读取devinfo的ufs，解析出闪存内存厂商。
+- 🔋 **查看电池健康状况**：调用系统API，读取电池信息
 - 🎨 **现代质感设计**：全界面采用 Material 3 卡片流布局，清晰呈现原始代号与解析结果。
 - 📂 **规则解耦与自定义导入**：内置默认映射字典，同时支持通过系统文件选择器导入外部 `.json` 规则或添加URL联网下载JSON，方便社区更新共建。
+- 🔍 **隐私卫士**：扫描系统中监控组件的运行状态，并给出卸载方案（暂未制作）
 - ➕ **后续添加更多欧加专属功能**
 ---
 
@@ -40,23 +42,11 @@
 > 
 > 
 > <div align="center">
-  <img width="1272" height="2800" alt="Screenshot_2026-10-17-17-43-04-44_cc039699cecc85" src="https://github.com/user-attachments/assets/978041bc-3a51-42de-8a43-c6bf866e8747" width="10%" alt="Logo"/>
+  <img width="220" height="480" alt="Screenshot_2026-11-27-18-37-00-68_cc039699cecc85" src="https://github.com/user-attachments/assets/2140541a-5632-4014-9997-337ac237985d" width="10%" alt="Logo"/>
+
   </div>
 
 
----
-
-## 🛠️ 工作原理
-
-OPlus 体系内核对底层硬件节点权限控制严格，本工具在获取 Root 权限后，在后台协程中安全读取以下只读虚拟节点：
-
-- **屏幕信息**：`/proc/devinfo/lcd` `/proc/devinfo/pt` `/proc/cmdline`
-- **内存信息**：`/proc/devinfo/ddr`
-- **闪存信息**：`/proc/devinfo/ufs`
-
-读取完成后，数据送入规则解析引擎，与本地字典比对完成“去黑话”翻译。
-
----
 
 ## 📥 自定义规则格式 (rules.json)
 
@@ -90,7 +80,7 @@ OPlus 体系内核对底层硬件节点权限控制严格，本工具在获取 R
 ---
 环境要求：设备需已获取 Root 权限（支持 Magisk / KernelSU / APatch 等） 免root功能需获取shell权限（Shizuku）
 
-免责声明：本软件仅对系统公开的 /proc/ 状态节点进行只读提取，**不对数据的准确性做保证**，请不要借此攻击厂商，此外，本工具也不会修改任何系统分区或内核寄存器，请放心使用。如因用户设备自身 Root 行为导致的任何风险，均由使用者自行承担。
+免责声明：本软件仅对系统公开的信息进行读取，**不对数据的准确性做保证**，请不要借此攻击厂商，此外，本工具也不会修改任何系统分区或内核寄存器，请放心使用。如因用户设备自身 Root 行为导致的任何风险，均由使用者自行承担。
 
 ## ⭐Star History
 感谢所有送出star的用户！如果觉得这个项目有用，请给个 ⭐ Star 支持一下！
