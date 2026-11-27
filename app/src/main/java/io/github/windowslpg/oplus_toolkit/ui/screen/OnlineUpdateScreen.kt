@@ -1,5 +1,7 @@
 package io.github.windowslpg.oplus_toolkit.ui.screen
 
+import androidx.activity.compose.BackHandler
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +56,8 @@ fun OnlineUpdateScreen(
     val coroutineScope = rememberCoroutineScope()
     val ruleRepository = remember { RuleRepository(context) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    BackHandler(onBack = onBack)
 
     var urlText by remember { mutableStateOf(RuleRepository.DEFAULT_ONLINE_RULES_URL) }
     var autoApply by remember { mutableStateOf(true) }

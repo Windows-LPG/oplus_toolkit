@@ -1,4 +1,4 @@
-package io.github.windowslpg.oplus_toolkit.ui.screen
+﻿package io.github.windowslpg.oplus_toolkit.ui.screen
 
 import android.app.Application
 import android.net.Uri
@@ -11,11 +11,14 @@ import io.github.windowslpg.oplus_toolkit.data.repository.RuleRepository
 import io.github.windowslpg.oplus_toolkit.data.root.DevInfoReader
 import io.github.windowslpg.oplus_toolkit.data.root.RootShellExecutor
 import io.github.windowslpg.oplus_toolkit.data.root.ScreenDetectionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,66 +28,72 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
-        refreshAll()
+        // 冷启动首帧优化：延迟 250ms 在 IO 线程执行耗时检测，避开 UI 渲染高峰
+        viewModelScope.launch {
+            delay(250)
+            refreshAll()
+        }
     }
 
     fun refreshAll() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, userMessage = null) }
 
-            val hasRoot = RootShellExecutor.isRootAvailable()
-            val isCustomRules = repository.isCustomRuleActive()
+            withContext(Dispatchers.IO) {
+                val hasRoot = RootShellExecutor.isRootAvailable()
+                val isCustomRules = repository.isCustomRuleActive()
 
-            if (!hasRoot) {
+                if (!hasRoot) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isRootGranted = false,
+                            isUsingCustomRules = isCustomRules,
+                            userMessage = "未获取到 Root 权限，请确保应用已授予 su 权限！"
+                        )
+                    }
+                    return@withContext
+                }
+
+                val rules = repository.loadRules()
+
+                val items = HardwareCategory.entries.map { category ->
+                    if (category == HardwareCategory.SCREEN) {
+                        val screenResult = ScreenDetectionManager.detectScreen(getApplication(), rules)
+                        HardwareItem(
+                            category = category,
+                            rawCode = screenResult.rawCode,
+                            vendorName = screenResult.parsedVendor,
+                            readSuccess = !screenResult.rawCode.startsWith("未能读取"),
+                            detectionSource = screenResult.nodePath
+                        )
+                    } else {
+                        val rawCode = DevInfoReader.readRawNode(category)
+                        val vendorName = HardwareParserEngine.parse(category, rawCode, rules)
+                        HardwareItem(
+                            category = category,
+                            rawCode = rawCode,
+                            vendorName = vendorName,
+                            readSuccess = !rawCode.startsWith("无法获取"),
+                            detectionSource = category.nodePath
+                        )
+                    }
+                }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        isRootGranted = false,
-                        isUsingCustomRules = isCustomRules,
-                        userMessage = "未获取到 Root 权限，请确保应用已授予 su 权限！"
+                        isRootGranted = true,
+                        hardwareList = items,
+                        isUsingCustomRules = isCustomRules
                     )
                 }
-                return@launch
-            }
-
-            val rules = repository.loadRules()
-
-            val items = HardwareCategory.entries.map { category ->
-                if (category == HardwareCategory.SCREEN) {
-                    val screenResult = ScreenDetectionManager.detectScreen(getApplication(), rules)
-                    HardwareItem(
-                        category = category,
-                        rawCode = screenResult.rawCode,
-                        vendorName = screenResult.parsedVendor,
-                        readSuccess = !screenResult.rawCode.startsWith("未能读取"),
-                        detectionSource = screenResult.nodePath
-                    )
-                } else {
-                    val rawCode = DevInfoReader.readRawNode(category)
-                    val vendorName = HardwareParserEngine.parse(category, rawCode, rules)
-                    HardwareItem(
-                        category = category,
-                        rawCode = rawCode,
-                        vendorName = vendorName,
-                        readSuccess = !rawCode.startsWith("无法获取"),
-                        detectionSource = category.nodePath
-                    )
-                }
-            }
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    isRootGranted = true,
-                    hardwareList = items,
-                    isUsingCustomRules = isCustomRules
-                )
             }
         }
     }
 
     fun importRules(uri: Uri) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             val result = repository.importRulesFromUri(uri)
             if (result.isSuccess) {
@@ -97,7 +106,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetRules() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true) }
             repository.resetToDefaultRules()
             _uiState.update { it.copy(userMessage = "已重置为内置默认规则") }

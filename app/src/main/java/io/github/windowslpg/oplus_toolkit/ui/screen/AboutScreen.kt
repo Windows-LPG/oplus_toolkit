@@ -1,5 +1,7 @@
 package io.github.windowslpg.oplus_toolkit.ui.screen
 
+import androidx.activity.compose.BackHandler
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -43,6 +45,7 @@ fun AboutScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    BackHandler(onBack = onBack)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

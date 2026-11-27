@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
@@ -52,6 +53,7 @@ import io.github.windowslpg.oplus_toolkit.BuildConfig
 fun SettingsScreen(
     viewModel: MainViewModel,
     onNavigateToOnlineUpdate: () -> Unit = {},
+    onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -177,7 +179,51 @@ fun SettingsScreen(
                 }
             }
 
-            // 卡片二：关于软件 (类似 KernelSU 点击跳转独立关于页面)
+            // 卡片二：主题与显示设置 (深浅色、动态取色)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToThemeSettings() }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Palette,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "主题与显示设置",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "外观模式与动态取色",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+            }
+
+            // 卡片三：关于软件 (类似 KernelSU 点击跳转独立关于页面)
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),

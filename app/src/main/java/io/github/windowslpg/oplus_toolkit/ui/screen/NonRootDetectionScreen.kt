@@ -1,6 +1,7 @@
 package io.github.windowslpg.oplus_toolkit.ui.screen
 
 import android.content.ComponentName
+import androidx.activity.compose.BackHandler
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -71,6 +72,8 @@ fun NonRootDetectionScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    BackHandler(onBack = onBack)
 
     var isShizukuReady by remember { mutableStateOf(ShizukuCommandRunner.hasPermission()) }
     var isCapturing by remember { mutableStateOf(false) }

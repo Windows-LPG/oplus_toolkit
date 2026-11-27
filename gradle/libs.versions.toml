@@ -10,7 +10,7 @@ material = "1.10.0"
 constraintlayout = "2.1.4"
 activityKtx = "1.8.0"
 activityCompose = "1.8.2"
-composeBom = "2024.02.00"
+composeBom = "2024.10.01"
 gson = "2.10.1"
 lifecycleCompose = "2.7.0"
 
@@ -38,6 +38,3 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
-
-

@@ -1,5 +1,6 @@
 package io.github.windowslpg.oplus_toolkit.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.windowslpg.oplus_toolkit.data.model.HardwareCategory
 import io.github.windowslpg.oplus_toolkit.ui.components.HardwareCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +51,8 @@ fun RootDetectionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    BackHandler(onBack = onBack)
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
@@ -132,12 +136,16 @@ fun RootDetectionScreen(
                     }
                 }
             } else {
+                val storageAndMemoryItems = remember(uiState.hardwareList) {
+                    uiState.hardwareList.filter { it.category != HardwareCategory.SCREEN }
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.hardwareList) { item ->
+                    items(storageAndMemoryItems) { item ->
                         HardwareCard(item = item)
                     }
 
